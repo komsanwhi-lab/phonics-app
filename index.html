@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="theme-color" content="#534AB7"/>
+<title>Phonics สำหรับเด็ก</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+:root{
+  --purple:#534AB7;--purple-l:#EEEDFE;--purple-m:#AFA9EC;--purple-d:#3C3489;
+  --teal-l:#E1F5EE;--teal-d:#085041;
+  --bg:#F5F4FF;--card:#FFFFFF;--text:#1a1a2e;--muted:#888;
+  --border:#E0DCF8;--r:14px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;background:var(--bg)}
+body{min-height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--text);background:var(--bg);overscroll-behavior:none}
+
+@keyframes bounce{0%,100%{transform:scale(1)}40%{transform:scale(1.38)}70%{transform:scale(0.93)}}
+@keyframes starPop{0%{transform:scale(0) rotate(0);opacity:1}100%{transform:scale(2.2) rotate(28deg);opacity:0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+/* ── APP SHELL ── */
+#shell{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;background:var(--card);box-shadow:0 0 40px rgba(83,74,183,.12)}
+
+/* TOP BAR */
+.topbar{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:16px 16px 12px;background:var(--card);border-bottom:1px solid var(--border)}
+.app-icon{width:40px;height:40px;background:var(--purple-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.app-title{font-size:18px;font-weight:700;color:var(--purple)}
+.app-sub{font-size:12px;color:var(--muted);margin-top:1px}
+
+/* TABS */
+.tab-bar{flex-shrink:0;display:flex;border-bottom:1px solid var(--border);background:var(--card)}
+.tab{flex:1;border:none;background:none;padding:13px 8px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;transition:all .18s}
+.tab.active{color:var(--purple);border-bottom-color:var(--purple)}
+
+/* SCROLL AREA */
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+
+/* PAGES */
+.page{display:none;padding:16px;padding-bottom:calc(16px + var(--safe-bottom))}
+.page.show{display:block;animation:fadein .2s ease}
+
+/* ── ALPHA PAGE ── */
+.sec-label{font-size:13px;color:var(--muted);margin-bottom:12px;text-align:center}
+.alpha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding-bottom:8px}
+.alpha-card{border:none;border-radius:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 7px;min-height:84px;transition:transform .12s;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.alpha-card:active{transform:scale(0.86)}
+.alpha-card.playing{animation:bounce .45s ease}
+.a-big{font-size:26px;font-weight:800;line-height:1.1}
+.a-small{font-size:16px;line-height:1.1;opacity:.72;font-weight:500}
+.a-snd{font-size:11px;font-weight:700;margin-top:3px}
+.a-ex{font-size:10px;margin-top:1px;opacity:.65}
+
+/* ── WORD PAGE ── */
+.cam-btn{width:100%;border:none;border-radius:var(--r);padding:15px;background:var(--teal-l);color:var(--teal-d);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.cam-btn:active{transform:scale(0.97)}
+#camInput{display:none}
+#previewImg{width:100%;border-radius:12px;margin-bottom:12px;display:none;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.loading-row{display:none;align-items:center;gap:10px;font-size:14px;color:var(--muted);padding:6px 0;margin-bottom:8px}
+.spinner{width:18px;height:18px;border:2.5px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+
+.input-box{background:var(--bg);border:2.5px solid var(--purple-m);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;min-height:54px;display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.input-box.focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(83,74,183,.12)}
+.typing-text{font-size:22px;font-weight:700;color:var(--text);letter-spacing:2px}
+.cursor{display:inline-block;width:2.5px;height:26px;background:var(--purple);margin-left:2px;vertical-align:middle;animation:blink 1s step-end infinite}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--purple-l);border-radius:40px;padding:7px 11px 7px 14px;font-size:15px;font-weight:700;color:var(--purple-d);cursor:pointer;border:none}
+.chip:active{transform:scale(0.92)}
+.chip-x{font-size:16px;color:var(--purple-m);margin-left:2px;line-height:1}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.ia-btn{border:none;border-radius:12px;padding:13px 8px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .12s}
+.ia-btn:active{transform:scale(0.93)}
+.btn-add{background:var(--purple);color:#fff;box-shadow:0 2px 8px rgba(83,74,183,.3)}
+.btn-add:disabled{background:#ccc;box-shadow:none;cursor:not-allowed}
+.btn-del{background:#f0eeff;color:var(--muted)}
+
+/* KEYBOARD */
+.kbd-wrap{margin-bottom:10px}
+.kbd-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.kbd-hint{font-size:12px;color:var(--muted)}
+.shift-btn{border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.shift-btn.off{background:#f0eeff;color:var(--muted)}
+.shift-btn.on{background:var(--purple);color:#fff}
+.kbd-row{display:flex;justify-content:center;gap:4px;margin-bottom:5px}
+.key{border:1.5px solid var(--border);border-radius:10px;height:52px;cursor:pointer;background:var(--card);flex:1;max-width:35px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.key:active{transform:scale(0.83);background:#f0eeff}
+.key.shift-on{background:var(--purple-l);border-color:var(--purple-m)}
+.k-up{font-size:16px;font-weight:800;line-height:1.2;color:var(--text)}
+.k-dn{font-size:12px;line-height:1.2;color:var(--muted);font-weight:500}
+.key.shift-on .k-up{color:var(--purple-d)}
+.key.shift-on .k-dn{color:var(--purple-m)}
+.key-del{max-width:50px;background:#f5f4ff;border-color:var(--border)}
+.key-del .k-up{font-size:20px;color:var(--muted)}
+
+.play-btn{width:100%;border:none;border-radius:var(--r);padding:16px;background:var(--purple);color:#fff;font-size:18px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;box-shadow:0 4px 14px rgba(83,74,183,.38);letter-spacing:.3px}
+.play-btn:active{transform:scale(0.97)}
+.play-btn:disabled{background:#ccc;box-shadow:none;cursor:not-allowed}
+
+/* SPELLING */
+#spellingBox{margin-top:16px}
+.spell-row{margin-bottom:14px;padding:14px;background:var(--bg);border-radius:var(--r);box-shadow:0 1px 5px rgba(0,0,0,.06);animation:fadein .25s ease}
+.spell-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:10px}
+.spell-letters{display:flex;flex-wrap:wrap;gap:8px}
+.sltr{border:none;border-radius:12px;width:56px;height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s;box-shadow:0 1px 4px rgba(0,0,0,.09)}
+.sltr:active{transform:scale(0.86)}
+.sltr.playing{animation:bounce .45s ease}
+.sl-up{font-size:13px;font-weight:700;line-height:1.1}
+.sl-lo{font-size:22px;font-weight:800;line-height:1.15}
+.sl-snd{font-size:10px;font-weight:700;margin-top:2px}
+.say-btn{margin-top:10px;width:100%;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;background:var(--purple-l);color:var(--purple-d);display:flex;align-items:center;justify-content:center;gap:7px}
+.say-btn:active{transform:scale(0.97)}
+
+.star-burst{position:fixed;pointer-events:none;font-size:24px;animation:starPop .65s ease forwards;z-index:9999}
+</style>
+</head>
+<body>
+<div id="shell">
+  <div class="topbar">
+    <div class="app-icon">🔤</div>
+    <div>
+      <div class="app-title">Phonics</div>
+      <div class="app-sub">ออกเสียงภาษาอังกฤษ</div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" id="tabA" onclick="switchTab('alpha')">📖 อักษร A–Z</button>
+    <button class="tab" id="tabW" onclick="switchTab('word')">📝 คำของฉัน</button>
+  </div>
+
+  <div class="scroll-area" id="scrollArea">
+    <!-- ALPHA PAGE -->
+    <div class="page show" id="alphaPage">
+      <p class="sec-label">กดตัวอักษรเพื่อฟังเสียง Phonics</p>
+      <div class="alpha-grid" id="alphaGrid"></div>
+    </div>
+
+    <!-- WORD PAGE -->
+    <div class="page" id="wordPage">
+      <button class="cam-btn" onclick="document.getElementById('camInput').click()">
+        📷 ถ่ายรูปการบ้าน
+      </button>
+      <input type="file" id="camInput" accept="image/*" capture="environment"/>
+      <img id="previewImg"/>
+      <div class="loading-row" id="loadingRow"><div class="spinner"></div><span>กำลังอ่านคำจากรูป...</span></div>
+
+      <div class="input-box" id="inputBox"></div>
+
+      <div class="row2">
+        <button class="ia-btn btn-add" id="addBtn" onclick="addWord()">＋ เพิ่มคำนี้</button>
+        <button class="ia-btn btn-del" onclick="delKey()">⌫ ลบตัวหลัง</button>
+      </div>
+
+      <div class="kbd-wrap">
+        <div class="kbd-top">
+          <span class="kbd-hint">แตะตัวอักษรเพื่อพิมพ์</span>
+          <button class="shift-btn off" id="shiftBtn" onclick="toggleShift()">↑ <span id="shiftLbl">Aa ตัวใหญ่</span></button>
+        </div>
+        <div class="kbd-row" id="kr1"></div>
+        <div class="kbd-row" id="kr2"></div>
+        <div class="kbd-row" id="kr3"></div>
+      </div>
+
+      <button class="play-btn" id="playBtn" onclick="playAll()">
+        ▶ สะกดและอ่านทุกคำ
+      </button>
+      <div id="spellingBox"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AD={
+  a:{snd:'æ',ex:'Apple',bg:'#FBEAF0',lt:'#993556',ss:'#D4537E'},
+  b:{snd:'buh',ex:'Ball',bg:'#E6F1FB',lt:'#185FA5',ss:'#378ADD'},
+  c:{snd:'kuh',ex:'Cat',bg:'#EAF3DE',lt:'#3B6D11',ss:'#639922'},
+  d:{snd:'duh',ex:'Dog',bg:'#FAEEDA',lt:'#854F0B',ss:'#BA7517'},
+  e:{snd:'eh',ex:'Egg',bg:'#EEEDFE',lt:'#3C3489',ss:'#534AB7'},
+  f:{snd:'fuh',ex:'Fish',bg:'#E1F5EE',lt:'#085041',ss:'#0F6E56'},
+  g:{snd:'guh',ex:'Go',bg:'#FAECE7',lt:'#712B13',ss:'#993C1D'},
+  h:{snd:'huh',ex:'Hat',bg:'#FBEAF0',lt:'#72243E',ss:'#D4537E'},
+  i:{snd:'ih',ex:'Ink',bg:'#E6F1FB',lt:'#0C447C',ss:'#185FA5'},
+  j:{snd:'juh',ex:'Jump',bg:'#EAF3DE',lt:'#27500A',ss:'#3B6D11'},
+  k:{snd:'kuh',ex:'Key',bg:'#FAEEDA',lt:'#633806',ss:'#854F0B'},
+  l:{snd:'luh',ex:'Lion',bg:'#EEEDFE',lt:'#26215C',ss:'#3C3489'},
+  m:{snd:'muh',ex:'Map',bg:'#E1F5EE',lt:'#04342C',ss:'#085041'},
+  n:{snd:'nuh',ex:'Net',bg:'#FAECE7',lt:'#993C1D',ss:'#D85A30'},
+  o:{snd:'oh',ex:'Ox',bg:'#FBEAF0',lt:'#993556',ss:'#D4537E'},
+  p:{snd:'puh',ex:'Pig',bg:'#E6F1FB',lt:'#185FA5',ss:'#378ADD'},
+  q:{snd:'kwuh',ex:'Queen',bg:'#EAF3DE',lt:'#3B6D11',ss:'#639922'},
+  r:{snd:'rrr',ex:'Run',bg:'#FAEEDA',lt:'#854F0B',ss:'#BA7517'},
+  s:{snd:'sss',ex:'Sun',bg:'#EEEDFE',lt:'#3C3489',ss:'#534AB7'},
+  t:{snd:'tuh',ex:'Top',bg:'#E1F5EE',lt:'#085041',ss:'#0F6E56'},
+  u:{snd:'uh',ex:'Up',bg:'#FAECE7',lt:'#712B13',ss:'#993C1D'},
+  v:{snd:'vuh',ex:'Van',bg:'#FBEAF0',lt:'#72243E',ss:'#D4537E'},
+  w:{snd:'wuh',ex:'Wet',bg:'#E6F1FB',lt:'#0C447C',ss:'#185FA5'},
+  x:{snd:'ks',ex:'Box',bg:'#EAF3DE',lt:'#27500A',ss:'#3B6D11'},
+  y:{snd:'yuh',ex:'Yes',bg:'#FAEEDA',lt:'#633806',ss:'#854F0B'},
+  z:{snd:'zzz',ex:'Zoo',bg:'#EEEDFE',lt:'#26215C',ss:'#3C3489'}
+};
+const LC=[
+  '#FBEAF0|#993556|#D4537E','#E6F1FB|#185FA5|#378ADD','#EAF3DE|#3B6D11|#639922',
+  '#FAEEDA|#854F0B|#BA7517','#EEEDFE|#3C3489|#534AB7','#E1F5EE|#085041|#0F6E56',
+  '#FAECE7|#712B13|#993C1D','#FCEBEB|#A32D2D|#E24B4A'
+];
+function lc(i){const p=LC[i%LC.length].split('|');return{bg:p[0],lt:p[1],ss:p[2]};}
+
+let input='',words=[],shift=false;
+
+function buildAlpha(){
+  const g=document.getElementById('alphaGrid');
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(l=>{
+    const d=AD[l],b=document.createElement('button');
+    b.className='alpha-card';b.style.background=d.bg;
+    b.innerHTML=`<span class="a-big" style="color:${d.lt}">${l.toUpperCase()}</span>
+      <span class="a-small" style="color:${d.lt}">${l}</span>
+      <span class="a-snd" style="color:${d.ss}">${d.snd}</span>
+      <span class="a-ex" style="color:${d.lt}">${d.ex}</span>`;
+    b.onclick=()=>{b.classList.add('playing');spawnStar(b);speak(d.snd,.65,1.3).then(()=>b.classList.remove('playing'));};
+    g.appendChild(b);
+  });
+}
+
+function buildKbd(){
+  ['qwertyuiop','asdfghjkl','zxcvbnm'].forEach((row,ri)=>{
+    const el=document.getElementById('kr'+(ri+1));
+    row.split('').forEach(l=>{
+      const b=document.createElement('button');
+      b.className='key';b.dataset.l=l;
+      b.innerHTML=`<span class="k-up">${l.toUpperCase()}</span><span class="k-dn">${l}</span>`;
+      b.onclick=()=>{input+=shift?l.toUpperCase():l;renderInput();};
+      el.appendChild(b);
+    });
+    if(ri===2){
+      const d=document.createElement('button');
+      d.className='key key-del';
+      d.innerHTML='<span class="k-up">⌫</span>';
+      d.onclick=delKey;
+      el.appendChild(d);
+    }
+  });
+}
+
+function toggleShift(){
+  shift=!shift;
+  document.getElementById('shiftBtn').className='shift-btn '+(shift?'on':'off');
+  document.getElementById('shiftLbl').textContent=shift?'Aa ON':'Aa ตัวใหญ่';
+  document.querySelectorAll('.key[data-l]').forEach(k=>{
+    k.classList.toggle('shift-on',shift);
+  });
+}
+
+function delKey(){
+  if(input.length>0)input=input.slice(0,-1);
+  else if(words.length>0)input=words.pop();
+  renderInput();renderSpelling();
+}
+
+function addWord(){
+  const w=input.trim();if(!w)return;
+  words.push(w);input='';
+  renderInput();renderSpelling();
+}
+
+function renderInput(){
+  const box=document.getElementById('inputBox');
+  box.innerHTML='';
+  words.forEach((w,i)=>{
+    const c=document.createElement('button');c.className='chip';
+    c.innerHTML=`${w}<span class="chip-x">×</span>`;
+    c.onclick=()=>{words.splice(i,1);renderInput();renderSpelling();};
+    box.appendChild(c);
+  });
+  const t=document.createElement('span');t.className='typing-text';t.textContent=input;
+  box.appendChild(t);
+  const cur=document.createElement('span');cur.className='cursor';box.appendChild(cur);
+  document.getElementById('addBtn').disabled=!input.trim();
+}
+
+function renderSpelling(){
+  const box=document.getElementById('spellingBox');
+  if(!words.length){box.innerHTML='';return;}
+  box.innerHTML='';
+  words.forEach((w,wi)=>{
+    const div=document.createElement('div');div.className='spell-row';
+    const ltrs=[...w].map((l,li)=>{
+      const c=lc(li),ph=AD[l.toLowerCase()]?.snd||l;
+      return `<button class="sltr" id="s${wi}_${li}" style="background:${c.bg}" onclick="playLetter(${wi},${li},'${l}')">
+        <span class="sl-up" style="color:${c.ss}">${l.toUpperCase()}</span>
+        <span class="sl-lo" style="color:${c.lt}">${l.toLowerCase()}</span>
+        <span class="sl-snd" style="color:${c.ss}">${ph}</span>
+      </button>`;
+    }).join('');
+    div.innerHTML=`<div class="spell-title">${w}</div>
+      <div class="spell-letters">${ltrs}</div>
+      <button class="say-btn" onclick="speakWord('${w}')">🔊 ออกเสียงคำเต็ม "${w}"</button>`;
+    box.appendChild(div);
+  });
+}
+
+async function playAll(){
+  if(input.trim())addWord();
+  if(!words.length){shake(document.getElementById('playBtn'));return;}
+  const btn=document.getElementById('playBtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="border-top-color:#fff;width:20px;height:20px"></div> กำลังเล่น...';
+  for(let wi=0;wi<words.length;wi++){await playWordFull(wi,words[wi]);await dl(400);}
+  btn.disabled=false;btn.innerHTML='▶ สะกดและอ่านทุกคำ';
+}
+
+async function playWordFull(wi,w){
+  for(let li=0;li<[...w].length;li++){await playLetter(wi,li,[...w][li]);await dl(80);}
+  await dl(220);await speak(w,.78,1.05);
+}
+
+async function playLetter(wi,li,l){
+  const el=document.getElementById('s'+wi+'_'+li);
+  if(el){el.classList.add('playing');spawnStar(el);}
+  await speak(AD[l.toLowerCase()]?.snd||l,.65,1.3);
+  if(el)el.classList.remove('playing');
+}
+
+async function speakWord(w){await speak(w,.78,1.05);}
+
+function speak(text,rate,pitch){
+  return new Promise(res=>{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US';u.rate=rate||.75;u.pitch=pitch||1.15;
+    u.onend=res;u.onerror=res;
+    window.speechSynthesis.speak(u);
+  });
+}
+
+function spawnStar(el){
+  const er=el.getBoundingClientRect();
+  ['⭐','✨','🌟'].forEach((s,i)=>{
+    const d=document.createElement('span');d.className='star-burst';d.textContent=s;
+    d.style.left=(er.left+er.width/2-12+(i-1)*18)+'px';
+    d.style.top=(er.top-8)+'px';
+    d.style.animationDelay=(i*.1)+'s';
+    document.body.appendChild(d);setTimeout(()=>d.remove(),800);
+  });
+}
+
+function shake(el){el.style.animation='';void el.offsetWidth;el.style.animation='shake .4s ease';setTimeout(()=>el.style.animation='',400);}
+function dl(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function switchTab(tab){
+  const isA=tab==='alpha';
+  document.getElementById('alphaPage').className='page'+(isA?' show':'');
+  document.getElementById('wordPage').className='page'+(!isA?' show':'');
+  document.getElementById('tabA').className='tab'+(isA?' active':'');
+  document.getElementById('tabW').className='tab'+(!isA?' active':'');
+  document.getElementById('scrollArea').scrollTop=0;
+}
+
+document.getElementById('camInput').addEventListener('change',async function(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async function(ev){
+    const b64=ev.target.result.split(',')[1];
+    document.getElementById('previewImg').src=ev.target.result;
+    document.getElementById('previewImg').style.display='block';
+    document.getElementById('loadingRow').style.display='flex';
+    try{
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+            {type:'text',text:'Extract all English words from this homework image. Return ONLY a JSON array preserving original capitalization, no explanation, no markdown, no backticks. Example: ["Cat","dog"]'}
+          ]}]})
+      });
+      const d=await resp.json();
+      const raw=d.content.map(i=>i.text||'').join('').replace(/```[a-z]*|```/g,'').trim();
+      const extracted=JSON.parse(raw);
+      words=[...new Set([...words,...extracted])];
+      input='';renderInput();renderSpelling();
+    }catch(err){console.error(err);}
+    document.getElementById('loadingRow').style.display='none';
+  };
+  reader.readAsDataURL(file);
+});
+
+buildAlpha();buildKbd();renderInput();
+</script>
+</body>
+</html>
